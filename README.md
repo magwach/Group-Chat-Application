@@ -1,6 +1,6 @@
 ﻿**Overview**
 
-    A real-time group chat application that allows multiple users to communicate in chat rooms. Features include user authentication, message persistence, and responsive UI.
+A real-time group chat application that allows multiple users to communicate in chat rooms. Features include user authentication, message persistence, and responsive UI.
 
 **Features**
 
