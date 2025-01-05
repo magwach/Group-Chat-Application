@@ -12,13 +12,17 @@ A real-time group chat application that allows multiple users to communicate in 
 **Setup Instructions**
 
 _Clone the repository:_
+
 git clone https://github.com/magwach/Group-Chat-Application.git
 
 _Install dependencies:_
+
 npm install
 
 _Configure the .env file with your environment variables._
+
 _Start the server:_
+
 npm start
 
 **Technologies**
