@@ -1,24 +1,24 @@
-﻿Overview
+﻿**Overview**
 A real-time group chat application that allows multiple users to communicate in chat rooms. Features include user authentication, message persistence, and responsive UI.
 
-Features
+**Features**
     • Real-time messaging with WebSocket
     • User authentication and profile management
     • Room creation and management
     • Typing indicators and message timestamps
 
-Setup Instructions
-Clone the repository:
+**Setup Instructions**
+_Clone the repository:_
 git clone https://github.com/magwach/Group-Chat-Application.git
 
-Install dependencies:
+_Install dependencies:_
 npm install
 
-Configure the .env file with your environment variables.
-Start the server:
+_Configure the .env file with your environment variables._
+_Start the server:_
 npm start
 
-Technologies
+**Technologies**
     • Node.js
     • Express
     • Socket.IO
