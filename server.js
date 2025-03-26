@@ -1,6 +1,5 @@
 'use strict';
 
-// Import dependencies
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -19,40 +18,34 @@ import myDB from './connection.js';
 import fccTesting from './freeCodeCamp/fcctesting.js';
 
 const app = express();
-// Create the HTTP server
 const http = createServer(app);
 
-// Initialize socket.io with the HTTP server
 const io = new Server(http);
 
-// Set up Pug as the template engine
 app.set('view engine', 'pug');
 app.set('views', './views/pug');
 
-// Middleware for sessions
 
 const sessionStore = MongoStore.create({
   mongoUrl: process.env.MONGO_URI, // Replace with your MongoDB connection string
 });
 
-// Middleware for passport
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
-    resave: false, // Avoid unnecessary resaves
-    saveUninitialized: false, // Do not save empty sessions
-    cookie: { secure: false }, // Set secure: true in production with HTTPS
+    resave: false, 
+    saveUninitialized: false, 
+    cookie: { secure: false }, 
     store: sessionStore,
   })
 );
 
-// Initialize Passport.js
 app.use(passport.initialize());
 app.use(passport.session());
 
 io.use(
   passportSocketIo.authorize({
-    key: 'connect.sid', // Default key for session ID in cookies
+    key: 'connect.sid', 
     secret: process.env.SESSION_SECRET,
     store: sessionStore,
     passport: passport,
@@ -61,17 +54,13 @@ io.use(
 );
 
 
-// Serve static files
 app.use('/public', express.static(process.cwd() + '/public'));
 
-// Middleware for parsing requests
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Connect to the database using myDB
 myDB((client) => {
   return new Promise((resolve, reject) => {
-    // Wrap in a Promise to handle db and collection methods in a then/catch chain
     const myDataBase = client.db('database').collection('users');
 
     if (!myDataBase) {
@@ -84,11 +73,9 @@ myDB((client) => {
       
       let currentUsers = 0;
 
-      // To listen for connections to your server
       io.on('connection', (socket) => {
         ++currentUsers;
         
-        // Notify all clients about the new user
         io.emit('user', {
           username: socket.request.user.username,
           currentUsers,
@@ -100,7 +87,6 @@ myDB((client) => {
         socket.on('disconnect', () => {
           --currentUsers;
       
-          // Notify all clients about the disconnected user
           io.emit('user', {
             username: socket.request.user.username,
             currentUsers,
@@ -110,9 +96,7 @@ myDB((client) => {
           console.log(`${socket.request.user.username} disconnected`);
         });
       
-        // Handle chat messages
         socket.on('chat message', (message) => {
-          // Broadcast the message to all clients
           io.emit('chat message', {
             username: socket.request.user.username,
             message,
@@ -121,7 +105,6 @@ myDB((client) => {
       });
       
 
-      // Route to display the index page with database connection status
       let displayMessage = 'Please login';
       app.route('/').get((req, res) => {
         res.render('index', {
@@ -133,38 +116,34 @@ myDB((client) => {
         });
       });
 
-      // Define the local strategy
       passport.use(new LocalStrategy((username, password, done) => {
-        console.log("Attempting login with", username, password); // Debugging line
+        console.log("Attempting login with", username, password);
 
-        // Search for user by username in the database
         myDataBase.findOne({ username: username })
         .then((user) => {
           if (!user) {
-            console.log("User not found");  // Debugging line
+            console.log("User not found");  
             console.log(user);
             displayMessage = 'Invalid username or password';
             return done(null, false);
           }
 
-          // If the user exists, check if the password matches
           if (!bcrypt.compareSync(password, user.password)) {
-            console.log("Password mismatch");  // Debugging line
+            console.log("Password mismatch");  
             displayMessage = 'Invalid username or password';
             return done(null, false);
           }
 
-          console.log("Authentication successful");  // Debugging line
-          return done(null, user); // Successful authentication
+          console.log("Authentication successful"); 
+          return done(null, user);
         })
         .catch((err) => {
-          console.error("Error during authentication", err);  // Debugging line
-          return done(err); // If there's an error in the database query
+          console.error("Error during authentication", err); 
+          return done(err);
         });
     }));
 
       
-      // Passport serialization and deserialization
       passport.serializeUser((user, done) => {
         done(null, user._id);
       });
@@ -180,12 +159,11 @@ myDB((client) => {
           });
       });
 
-      // Add other routes or middleware here as needed
 
       app.route('/login')
       .post(passport.authenticate('local', {
-        successRedirect: '/profile', // Redirect on success
-        failureRedirect: '/', // Redirect on failure
+        successRedirect: '/profile', 
+        failureRedirect: '/',
       }));
 
       function ensureAuthenticated(req, res, next) {
@@ -264,7 +242,6 @@ myDB((client) => {
             myDataBase.findOneAndUpdate(
               { id: profile.id },
               {
-                // Fields under $setOnInsert are only applied if a new document is created (inserted due to upsert: true).
                 $setOnInsert: {
                   id: profile.id,
                   username: profile.username,
@@ -276,17 +253,13 @@ myDB((client) => {
                   created_on: new Date(),
                   provider: profile.provider || ''
                 },
-                // Fields under $set are applied every time the query runs, whether it's an update or an insert.
                 $set: {
                   last_login: new Date()
                 },
-                // Increments the login_count field by 1 each time the query runs.
                 $inc: {
                   login_count: 1
                 }
               },
-              // upsert: true: If no matching document is found, insert a new one.
-              // new: true: Ensures the returned document is the newly updated version (with changes applied).
               { upsert: true, new: true }
             )
             .then((doc) =>{
@@ -315,7 +288,6 @@ myDB((client) => {
           });
         });
 
-        // Add this middleware after all routes
         app.use((req, res, next) => {
           res.status(404)
             .type('text')
@@ -323,7 +295,6 @@ myDB((client) => {
         });
     })
     .catch((e) => {
-      // Handle database connection errors
       app.route('/').get((req, res) => {
         res.render('index', { title: e.message, message: 'Unable to connect to database' });
       });
@@ -331,7 +302,6 @@ myDB((client) => {
 })
 
 
-// Start the server
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
